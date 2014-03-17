@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ConfigurationInfo;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 
 public class MainActivity extends Activity {
@@ -19,7 +20,7 @@ public class MainActivity extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
+		Log.e("JDX Main Activity", "Second Push");
 		//Set Content View
 		glSurfaceView = new JDXTrial2SurfaceView(this);
 		setContentView(glSurfaceView);
