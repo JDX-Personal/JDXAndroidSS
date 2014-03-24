@@ -83,8 +83,16 @@ public class JDXTrial2Renderer implements GLSurfaceView.Renderer {
 	private LetterMap dMap;
 	private LetterMap xMap;
 	
+	private int rotationCounter;
+	private long letterTime = 0;
+	private long lightTime = 0;
+	private long startTime = 0;
+	private boolean startTimeLock = false;
+	private boolean lightTimeLock = false;
+	private boolean letterTimeLock = false;
 	
 	public JDXTrial2Renderer(final MainActivity jDXTrial2Activity, ErrorHandler errorHandler) {
+		
 		this.jDXTrial2Activity = jDXTrial2Activity;
 		this.errorHandler = errorHandler;
 		glEs20 = new AndroidGL20();
@@ -177,9 +185,28 @@ public class JDXTrial2Renderer implements GLSurfaceView.Renderer {
 	@Override
 	public void onDrawFrame(GL10 glUnused) {
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT | GLES20.GL_DEPTH_BUFFER_BIT);
+		//Time the application starts
+		if (!startTimeLock){
+			startTime = SystemClock.uptimeMillis();
+			startTimeLock = true;
+		}
+		//Clock to rotate letter 90 degrees in 2 seconds
+		if(!letterTimeLock)			
+			letterTime = (SystemClock.uptimeMillis()-startTime) % 8000L;
+		if (letterTime > 2000)
+			letterTimeLock = true;
 		
-		long time = SystemClock.uptimeMillis() % 10000L;        
-        float angleInDegrees = (360.0f / 10000.0f) * ((int) time);  
+		//Clock to rotate light source 180 degrees  in 4 seconds
+		if(!lightTimeLock)			
+			lightTime = (SystemClock.uptimeMillis()-startTime) % 8000L;
+		if (lightTime > 4000)
+			lightTimeLock = true;
+		
+		//Converting clocktimes to rotations degrees
+        float letterAngleInDegrees = (360.0f / 8000.0f) * ((int) letterTime)-90.0f;
+        float lightAngleInDegrees = (360.0f / 8000.0f) * ((int) lightTime)-90.0f;
+        
+        
 		// Set our per-vertex lighting program.
 		GLES20.glUseProgram(letterProgram);
 
@@ -194,7 +221,7 @@ public class JDXTrial2Renderer implements GLSurfaceView.Renderer {
 		// Calculate position of the light. Rotate and then push into the distance.
         Matrix.setIdentityM(lightModelMatrix, 0);
         Matrix.translateM(lightModelMatrix, 0, 0.0f, 0.0f, -11.0f);      
-        Matrix.rotateM(lightModelMatrix, 0, angleInDegrees, 0.0f, 1.0f, 0.0f);
+        Matrix.rotateM(lightModelMatrix, 0, lightAngleInDegrees, 0.0f, 1.0f, 0.0f);
         Matrix.translateM(lightModelMatrix, 0, 0.0f, 0.0f,5.0f);
                
         Matrix.multiplyMV(lightPosInWorldSpace, 0, lightModelMatrix, 0, lightPosInModelSpace, 0);
@@ -204,7 +231,7 @@ public class JDXTrial2Renderer implements GLSurfaceView.Renderer {
         //J
         Matrix.setIdentityM(modelMatrix, 0);
 		Matrix.translateM(modelMatrix, 0, -12.0f, -5.0f, -12f);
-		 Matrix.rotateM(modelMatrix, 0, -angleInDegrees, 0.0f, 1.0f, 0.0f);
+		 Matrix.rotateM(modelMatrix, 0, -letterAngleInDegrees, 0.0f, 1.0f, 0.0f);
 		Matrix.multiplyMM(mvpMatrix, 0, viewMatrix, 0, modelMatrix, 0);
 		GLES20.glUniformMatrix4fv(mvMatrixUniform, 1, false, mvpMatrix, 0);
 		Matrix.multiplyMM(temporaryMatrix, 0, projectionMatrix, 0, mvpMatrix, 0);
@@ -218,7 +245,7 @@ public class JDXTrial2Renderer implements GLSurfaceView.Renderer {
 		//D
         Matrix.setIdentityM(modelMatrix, 0);
 		Matrix.translateM(modelMatrix, 0, 0.0f, -5.0f, -12f);
-		 Matrix.rotateM(modelMatrix, 0, -angleInDegrees, 0.0f, 1.0f, 0.0f);
+		 Matrix.rotateM(modelMatrix, 0, -letterAngleInDegrees, 0.0f, 1.0f, 0.0f);
 		Matrix.multiplyMM(mvpMatrix, 0, viewMatrix, 0, modelMatrix, 0);
 		GLES20.glUniformMatrix4fv(mvMatrixUniform, 1, false, mvpMatrix, 0);
 		Matrix.multiplyMM(temporaryMatrix, 0, projectionMatrix, 0, mvpMatrix, 0);
@@ -232,7 +259,7 @@ public class JDXTrial2Renderer implements GLSurfaceView.Renderer {
 		//X
         Matrix.setIdentityM(modelMatrix, 0);
 		Matrix.translateM(modelMatrix, 0, 12.0f, -5.0f, -12f);
-		 Matrix.rotateM(modelMatrix, 0, -angleInDegrees, 0.0f, 1.0f, 0.0f);
+		 Matrix.rotateM(modelMatrix, 0, -letterAngleInDegrees, 0.0f, 1.0f, 0.0f);
 		Matrix.multiplyMM(mvpMatrix, 0, viewMatrix, 0, modelMatrix, 0);
 		GLES20.glUniformMatrix4fv(mvMatrixUniform, 1, false, mvpMatrix, 0);
 		Matrix.multiplyMM(temporaryMatrix, 0, projectionMatrix, 0, mvpMatrix, 0);
@@ -245,7 +272,7 @@ public class JDXTrial2Renderer implements GLSurfaceView.Renderer {
 		
 		// Draw a point to indicate the light.
         GLES20.glUseProgram(lightProgram);        
-        drawLight();
+        //drawLight();
 	}
 	
 	private void drawLight()
